@@ -12,5 +12,4 @@
 > running = true
 > if running 10 20
 10
->
 ```
