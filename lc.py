@@ -5,33 +5,33 @@ reserved = kwlist
 kwlist.append("id")
 kwlist.remove("lambda")
 
-def parse(characters):
-	for old, new in {"\\": " lambda ", ".": ":"}.items():
+def parse(characters, get_as_list = False):
+	for old, new in {"\\": " lambda ", ".": " : "}.items():
 		characters = characters.replace(old, new)
 
 	calling_function = False
 	iterations_to_skip = 0
 	for i, token in enumerate(tokens := characters.split()):
-		print("Token:", token)
 		if token in reserved:
-			print("In reserved:", token)
 			tokens[i] = "_" + token
-
 		if iterations_to_skip > 0:
 			iterations_to_skip -= 1
 			continue
 		elif token == "=":
 			calling_function = False
+			if tokens[i + 1] != "\\":
+				tokens[i + 1] = " ".join(parse(" ".join(tokens[i + 1:]), True))
+				del tokens[i + 2:]
 		elif token == ":":
 			calling_function = True
 			iterations_to_skip = 1
-		elif i == 0:
+		elif i == 0 and token != "(":
 			calling_function = True
 			continue
 		elif calling_function and tokens[i - 1] != "lambda":
 			tokens[i] = f"({tokens[i]})"
 
-	return " ".join(tokens)
+	return tokens if get_as_list else " ".join(tokens)
 
 def main():
 	#####
@@ -47,7 +47,7 @@ def main():
 	while True:
 		as_python = parse(input("> "))
 		try:
-			result = eval(f"{as_python}")
+			result = eval(as_python)
 			try:
 				if callable(result):
 					name_fetcher = lambda l: getsource(l).split('=')[0].strip()
